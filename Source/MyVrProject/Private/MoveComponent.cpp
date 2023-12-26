@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MoveComponent.h"
@@ -8,6 +8,9 @@
 #include "Components/TextRenderComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "VRDrawFunctionLibrary.h"
+#include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "TeleportRingActor.h"
+#include "NiagaraComponent.h"
 
 
 UMoveComponent::UMoveComponent()
@@ -23,6 +26,16 @@ void UMoveComponent::BeginPlay()
 
 	player = GetOwner<AVR_Player>();
 
+	// í…”ë ˆí¬íŠ¸ ì§€ì  ìœ„ì¹˜ì— í‘œì‹œí•  ë§ ì´í™íŠ¸ ì•¡í„°ë¥¼ ìƒì„±í•œë‹¤.
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	teleportRingInst = GetWorld()->SpawnActor<ATeleportRingActor>(teleportRingBP, FVector::ZeroVector, FRotator::ZeroRotator, params);
+
+	if (teleportRingInst != nullptr)
+	{
+		// ëˆˆì— ë³´ì´ì§€ ì•Šê²Œ ì²˜ë¦¬í•œë‹¤.
+		teleportRingInst->ring_FX->SetVisibility(false);
+	}
 }
 
 
@@ -38,7 +51,7 @@ void UMoveComponent::SetupPlayerInputComponent(class UEnhancedInputComponent* en
 	enhancedInputComponent->BindAction(inputs[0], ETriggerEvent::Completed, this, &UMoveComponent::Teleport);
 }
 
-// ¿¹Ãø¼± º¸ÀÌ°Ô ÇÏ´Â ÇÔ¼ö
+// ì˜ˆì¸¡ì„  ë³´ì´ê²Œ í•˜ëŠ” í•¨ìˆ˜
 void UMoveComponent::ShowLine(const FInputActionValue& value)
 {
 	bool bIsPressed = value.Get<bool>();
@@ -46,18 +59,26 @@ void UMoveComponent::ShowLine(const FInputActionValue& value)
 
 	if (bIsPressed && player != nullptr)
 	{
+#pragma region ì¤‘ë ¥ ê°€ì†ë„ë¥¼ ì´ìš©í•œ ë°©ì‹
 		DrawTrajectory(player->leftController->GetComponentLocation(), player->leftHand->GetForwardVector() * -1 + player->leftHand->GetRightVector(), lineSpeed, 50, 0.1f);
+
+#pragma endregion
+
+#pragma region ë² ì§€ì–´ ê³¡ì„ ì‹ì„ ì´ìš©í•œ ë°©ì‹
+		//DrawTrajectoryBezier(player->leftHand->GetComponentLocation(), player->leftHand->GetForwardVector() + player->leftHand->GetRightVector(), 50);
+
+#pragma endregion
 	}
 }
 
-// ¿¹Ãø ¼±À» °è»êÇÏ°í ±×¸®´Â ÇÔ¼ö(Áß·Â ¹æ½Ä)
+// ì˜ˆì¸¡ ì„ ì„ ê³„ì‚°í•˜ê³  ê·¸ë¦¬ëŠ” í•¨ìˆ˜(ì¤‘ë ¥ ë°©ì‹)
 void UMoveComponent::DrawTrajectory(FVector startLoc, FVector dir, float speed, int32 segment, float interval)
 {
 	TArray<FVector> linePositions;
 
 	for (int32 i = 0; i < segment; i++)
 	{
-		// dir ¹æÇâÀ¸·Î segment È¸¸¸Å­ interval °£°İ(ÃÊ)À¸·Î ¹İº¹ÇØ¼­ ÀÌµ¿ÇßÀ» À§Ä¡¸¦ °è»êÇÑ´Ù.
+		// dir ë°©í–¥ìœ¼ë¡œ segment íšŒë§Œí¼ interval ê°„ê²©(ì´ˆ)ìœ¼ë¡œ ë°˜ë³µí•´ì„œ ì´ë™í–ˆì„ ìœ„ì¹˜ë¥¼ ê³„ì‚°í•œë‹¤.
 		float elapsedTime = interval * i;
 		FVector gravityVec = FVector(0, 0, GetWorld()->GetDefaultGravityZ());
 		FVector newLocation = startLoc + dir * speed * elapsedTime + (0.5f * gravityVec * elapsedTime * elapsedTime);
@@ -71,32 +92,59 @@ void UMoveComponent::DrawTrajectory(FVector startLoc, FVector dir, float speed, 
 			break;
 		}
 
-		// °è»ê °á°ú °ªµéÀº ¹è¿­ º¯¼ö¿¡ ´ã¾Æ³õ´Â´Ù.
+		// ê³„ì‚° ê²°ê³¼ ê°’ë“¤ì€ ë°°ì—´ ë³€ìˆ˜ì— ë‹´ì•„ë†“ëŠ”ë‹¤.
 		linePositions.Add(newLocation);
 
 	}
 
-	// °è»êµÈ À§Ä¡µéÀ» ¼±À¸·Î ¿¬°áÇØ¼­ ±×¸°´Ù.
-	for (int32 i = 0; i < linePositions.Num() - 1; i++)
+	// ê³„ì‚°ëœ ìœ„ì¹˜ë“¤ì„ ì„ ìœ¼ë¡œ ì—°ê²°í•´ì„œ ê·¸ë¦°ë‹¤.
+	/*for (int32 i = 0; i < linePositions.Num() - 1; i++)
 	{
 		DrawDebugLine(GetWorld(), linePositions[i], linePositions[i + 1], FColor::Green, false, 0, 0, 2.0f);
 
-	}
+	}*/
 
-	// ¸¶Áö¸· À§Ä¡¿¡ »¡°­ »óÀÚ¸¦ Ç¥½ÃÇÑ´Ù.
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(player->teleportFX, FName("PointArray"), linePositions);
+
+	// ë§ˆì§€ë§‰ ìœ„ì¹˜ì— ë¹¨ê°• ìƒìë¥¼ í‘œì‹œí•œë‹¤.
 	targetLocation = linePositions[linePositions.Num() - 1];
-	DrawDebugSolidBox(GetWorld(), targetLocation, FVector(5), FColor::Red);
+	//DrawDebugSolidBox(GetWorld(), targetLocation, FVector(5), FColor::Red);
+	if (teleportRingInst != nullptr)
+	{
+		teleportRingInst->SetActorLocation(targetLocation);
+		teleportRingInst->ring_FX->SetVisibility(true);
+	}
 }
 
 void UMoveComponent::DrawTrajectoryBezier(FVector startLoc, FVector dir, int32 segment)
 {
-	//TArray<FVector> results = UVRDrawFunctionLibrary::CalculateBezierCurve();
+	FHitResult hitInfo;
+	FVector endLoc = startLoc + dir * 1000;
+	FVector hitLoc;
+
+
+	if (GetWorld()->LineTraceSingleByChannel(hitInfo, startLoc, endLoc, ECC_Visibility))
+	{
+		hitLoc = hitInfo.ImpactPoint;
+		FVector centorLoc = FVector((hitLoc.X + startLoc.X)*0.5f, (hitLoc.Y + startLoc.Y) * 0.5f, startLoc.Z);
+
+		TArray<FVector> results = UVRDrawFunctionLibrary::CalculateBezierCurve(startLoc, centorLoc, hitLoc, segment);
+
+		if (results.Num() > 0)
+		{
+			for (int32 i = 0; i < results.Num() - 1; i++)
+			{
+				DrawDebugLine(GetWorld(), results[i], results[i+1], FColor::Green, false, 0, 0, 2);
+			}
+		}
+	}
+	
 }
 
-// ¸ñÇ¥ ÁöÁ¡À¸·Î ¼ø°£ÀÌµ¿ÇÏ´Â ÇÔ¼ö
+// ëª©í‘œ ì§€ì ìœ¼ë¡œ ìˆœê°„ì´ë™í•˜ëŠ” í•¨ìˆ˜
 void UMoveComponent::Teleport()
 {
-	// Black Fade In È¿°ú¸¦ ÁØ´Ù.
+	// Black Fade In íš¨ê³¼ë¥¼ ì¤€ë‹¤.
 	player->GetController<APlayerController>()->PlayerCameraManager->StartCameraFade(0, 1.0f, teleportDelay, FLinearColor::Black);
 	
 	if (!targetLocation.IsNearlyZero())
@@ -104,7 +152,13 @@ void UMoveComponent::Teleport()
 		FTimerHandle teleportTimer;
 
 		GetWorld()->GetTimerManager().SetTimer(teleportTimer, FTimerDelegate::CreateLambda([&]() {
+			//1. í”Œë ˆì´ì–´ ì´ë™
 			player->SetActorLocation(targetLocation + FVector(0, 0, player->GetCapsuleComponent()->GetScaledCapsuleHalfHeight()));
+			//2. ë§ ì´í™íŠ¸ í‘œì‹œ ë„ê¸°
+			teleportRingInst->ring_FX->SetVisibility(false);
+			//3. ë¼ì¸ ì´í™íŠ¸ì˜ ë°°ì—´ ê°’ ì´ˆê¸°í™”
+			TArray<FVector> resetVec = { FVector::ZeroVector, FVector::ZeroVector };
+			UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(player->teleportFX, FName("PointArray"), resetVec);
 			}), teleportDelay, false);
 	}
 }

@@ -26,6 +26,9 @@ public:
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	float teleportDelay = 1.0f;
 
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	TSubclassOf<class ATeleportRingActor> teleportRingBP;
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void SetupPlayerInputComponent(class UEnhancedInputComponent* enhancedInputComponent, TArray<class UInputAction*> inputs);
 
@@ -33,6 +36,7 @@ public:
 private:
 	class AVR_Player* player;
 	FVector targetLocation;
+	class ATeleportRingActor* teleportRingInst;
 
 	void ShowLine(const FInputActionValue& value);
 	void DrawTrajectory(FVector startLoc, FVector dir, float speed, int32 segment, float interval);
