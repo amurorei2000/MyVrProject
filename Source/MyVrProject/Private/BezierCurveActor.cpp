@@ -38,15 +38,19 @@ void ABezierCurveActor::DrawBezierCurve(FVector loc0, FVector loc1, FVector loc2
 	FVector m1;
 	FVector b;
 
+	m0 = FMath::Lerp(loc0, loc1, t);
+	m1 = FMath::Lerp(loc1, loc2, t);
+	b = FMath::Lerp(m0, m1, t);
+
 	// 계산
-	for (float i = 0; i < 1.0f; i += 0.05f)
+	/*for (float i = 0; i < 1.0f; i += 0.05f)
 	{
 		m0 = FMath::Lerp(loc0, loc1, i);
 		m1 = FMath::Lerp(loc1, loc2, i);
 		b = FMath::Lerp(m0, m1, i);
 
 		linePositions.Add(b);
-	}
+	}*/
 
 	// 그리기
 	UWorld* world = GetWorld();
@@ -56,12 +60,12 @@ void ABezierCurveActor::DrawBezierCurve(FVector loc0, FVector loc1, FVector loc2
 	DrawDebugPoint(world, m1, 10, FColor::White, false, 0, 0);
 	DrawDebugPoint(world, b, 10, FColor::Purple, false, 0, 0);
 
-	if (linePositions.Num() > 0)
+	/*if (linePositions.Num() > 0)
 	{
 		for(int32 i = 0; i < linePositions.Num() -1 ; i++)
 		{
 			DrawDebugLine(world, linePositions[i], linePositions[i+1], FColor::Magenta, false, 0, 0, 1);
 		}
-	}
+	}*/
 }
 

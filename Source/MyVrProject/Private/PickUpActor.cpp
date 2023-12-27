@@ -29,7 +29,7 @@ APickUpActor::APickUpActor()
 void APickUpActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 void APickUpActor::Tick(float DeltaTime)
@@ -38,12 +38,36 @@ void APickUpActor::Tick(float DeltaTime)
 
 }
 
-void APickUpActor::Grabbed(USkeletalMeshComponent* handMesh)
+void APickUpActor::Grabbed(USkeletalMeshComponent* handMesh, EAttachmentRule attachmentRules)
 {
 	// 잡혔을 때의 핸드 메시에 부착된다.
 	boxComp->SetSimulatePhysics(false);
 
-	FAttachmentTransformRules attachmentRules = FAttachmentTransformRules::KeepWorldTransform;
-	AttachToComponent(handMesh, attachmentRules);
+	if (attachmentRules == EAttachmentRule::KeepWorld)
+	{
+		FAttachmentTransformRules rules = FAttachmentTransformRules::KeepWorldTransform;
+		// 잡는 순간의 간격을(월드 좌표 기준) 유지하면서 붙인다.
+		AttachToComponent(handMesh, rules);
+	}
+	// 지정된 위치로 이동해서 붙인다.
+	else if (attachmentRules == EAttachmentRule::SnapToTarget)
+	{
+		FAttachmentTransformRules rules = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
+		AttachToComponent(handMesh, rules, FName("GrabSocket"));
+		SetActorRelativeLocation(locationOffset);
+	}
+}
+
+void APickUpActor::Released(FVector deltaPosition, FQuat deltaRotaion)
+{
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	boxComp->SetSimulatePhysics(true);
+
+	// 릴리즈될 당시의 속도와 각속도를 추가해준다.
+	if(deltaPosition.Size() > 0.05f)
+	{
+		boxComp->AddImpulse(deltaPosition * throwPower);
+		boxComp->AddTorqueInRadians(deltaRotaion.GetRotationAxis() * rotPower);
+	}
 }
 
