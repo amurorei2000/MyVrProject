@@ -56,6 +56,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MySettings|Components")
 	class UGrabComponent* grabComp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MySettings|Components")
+	class UVRHandAnimComponent* handAnimComp;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MySettings|Inputs")
 	class UInputMappingContext* imc;
@@ -93,4 +96,6 @@ private:
 	void PlayerMove(const FInputActionValue& value);
 	void PlayerRotate(const FInputActionValue& value);
 	void BasicTeleport(float sightRange, FVector direction, FVector pivot);
+
+	class UVRBodyAnimInstance* bodyAnim;
 };

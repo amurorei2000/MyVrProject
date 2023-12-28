@@ -14,7 +14,8 @@
 #include "MoveComponent.h"
 #include "NiagaraComponent.h"
 #include "GrabComponent.h"
-
+#include "VRHandAnimComponent.h"
+#include "VRBodyAnimInstance.h"
 
 AVR_Player::AVR_Player()
 {
@@ -72,7 +73,7 @@ AVR_Player::AVR_Player()
 	// 액터 컴포넌트
 	moveComp = CreateDefaultSubobject<UMoveComponent>(TEXT("Move Component"));
 	grabComp = CreateDefaultSubobject<UGrabComponent>(TEXT("Grab Component"));
-
+	handAnimComp = CreateDefaultSubobject<UVRHandAnimComponent>(TEXT("VR Hand Anim Component"));
 }
 
 void AVR_Player::BeginPlay()
@@ -92,12 +93,25 @@ void AVR_Player::BeginPlay()
 			subsys->AddMappingContext(imc, 0);
 		}
 	}
+
+	bodyAnim = Cast<UVRBodyAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 void AVR_Player::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bodyAnim != nullptr)
+	{
+		bodyAnim->leftHandLocation = leftController->GetComponentLocation();
+		bodyAnim->leftHandRotation = leftController->GetComponentRotation();
+
+		bodyAnim->rightHandLocation = rightController->GetComponentLocation();
+		bodyAnim->rightHandRotation = rightController->GetComponentRotation();
+
+		bodyAnim->headLocation = cameraComp->GetComponentLocation();
+		bodyAnim->headRotation = cameraComp->GetComponentRotation();
+	}
 }
 
 void AVR_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -124,6 +138,7 @@ void AVR_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		// 컴포넌트에 입력 이벤트 넘겨주기
 		moveComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 		grabComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
+		handAnimComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 	}
 }
 
