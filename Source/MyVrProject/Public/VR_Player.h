@@ -59,6 +59,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MySettings|Components")
 	class UVRHandAnimComponent* handAnimComp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MySettings|Components")
+	class UStaticMeshComponent* gazeMeshComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MySettings|Inputs")
 	class UInputMappingContext* imc;
@@ -87,6 +89,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MySettings|Inputs")
 	TArray<class UInputAction*> ia_inputs;
 
+	class APlayerController* pc;
 
 private:
 	void RightTriggerInput_Bool(const FInputActionValue& value);
@@ -96,6 +99,10 @@ private:
 	void PlayerMove(const FInputActionValue& value);
 	void PlayerRotate(const FInputActionValue& value);
 	void BasicTeleport(float sightRange, FVector direction, FVector pivot);
+	void Recenter(const FInputActionValue& value);
+	void StopRecenter(const FInputActionValue& value);
 
 	class UVRBodyAnimInstance* bodyAnim;
+
+	float recenterTimer = 0;
 };

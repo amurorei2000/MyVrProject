@@ -24,6 +24,9 @@ AVR_Player::AVR_Player()
 	cameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	cameraComp->SetupAttachment(RootComponent);
 
+	gazeMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Gaze Mesh"));
+	gazeMeshComp->SetupAttachment(cameraComp);
+
 	hmdMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HMD Mesh"));
 	hmdMesh->SetupAttachment(cameraComp);
 
@@ -84,7 +87,9 @@ void AVR_Player::BeginPlay()
 	UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin(EHMDTrackingOrigin::Stage);
 
 	// 입력 매핑 설정하기
-	if (APlayerController* pc = GetWorld()->GetFirstPlayerController())
+	pc = GetWorld()->GetFirstPlayerController();
+
+	if (pc != nullptr)
 	{
 		UEnhancedInputLocalPlayerSubsystem* subsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(pc->GetLocalPlayer());
 
@@ -132,8 +137,11 @@ void AVR_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		enhancedInputComponent->BindAction(ia_rightTriggerFloat, ETriggerEvent::Completed, this, &AVR_Player::RightTriggerInput_Float);
 		enhancedInputComponent->BindAction(ia_rightThumbStick, ETriggerEvent::Triggered, this, &AVR_Player::RightThumbstickInput);
 		enhancedInputComponent->BindAction(ia_rightThumbStick, ETriggerEvent::Completed, this, &AVR_Player::RightThumbstickInput);
-		enhancedInputComponent->BindAction(ia_moveInput, ETriggerEvent::Triggered, this, &AVR_Player::PlayerMove);
-		enhancedInputComponent->BindAction(ia_rotateInput, ETriggerEvent::Triggered, this, &AVR_Player::PlayerRotate)*/;
+		enhancedInputComponent->BindAction(ia_moveInput, ETriggerEvent::Triggered, this, &AVR_Player::PlayerMove);*/
+		enhancedInputComponent->BindAction(ia_inputs[11], ETriggerEvent::Triggered, this, &AVR_Player::PlayerRotate);
+
+		enhancedInputComponent->BindAction(ia_inputs[10], ETriggerEvent::Triggered, this, &AVR_Player::Recenter);
+		enhancedInputComponent->BindAction(ia_inputs[10], ETriggerEvent::Completed, this, &AVR_Player::StopRecenter);
 
 		// 컴포넌트에 입력 이벤트 넘겨주기
 		moveComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
@@ -226,5 +234,25 @@ void AVR_Player::BasicTeleport(float sightRange, FVector direction, FVector pivo
 	}
 
 	
+}
+
+void AVR_Player::Recenter(const FInputActionValue& value)
+{
+	recenterTimer += GetWorld()->DeltaTimeSeconds;
+	if (recenterTimer < 2)
+	{
+		return;
+	}
+	else 
+	{
+		UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition(0, EOrientPositionSelector::OrientationAndPosition);
+		recenterTimer = 0;
+	}
+
+}
+
+void AVR_Player::StopRecenter(const FInputActionValue& value)
+{
+	recenterTimer = 0;
 }
 

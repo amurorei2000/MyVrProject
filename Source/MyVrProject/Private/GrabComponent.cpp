@@ -7,6 +7,7 @@
 #include "Components/TextRenderComponent.h"
 #include "PickUpActor.h"
 #include "MotionControllerComponent.h"
+#include "Haptics/HapticFeedbackEffect_Base.h"
 
 
 UGrabComponent::UGrabComponent()
@@ -106,6 +107,12 @@ void UGrabComponent::GrabObject()
 			currentObject->Grabbed(player->rightHand, EAttachmentRule::SnapToTarget);
 			prevLoc = player->rightController->GetComponentLocation();
 			player->rightLog->SetText(FText::FromString(objects));
+
+			// 진동 효과를 준다.
+			if (player->pc != nullptr && grabHaptic != nullptr)
+			{
+				player->pc->PlayHapticEffect(grabHaptic, EControllerHand::Right);
+			}
 		}
 	}
 	else
