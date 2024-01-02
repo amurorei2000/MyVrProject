@@ -16,6 +16,8 @@
 #include "GrabComponent.h"
 #include "VRHandAnimComponent.h"
 #include "VRBodyAnimInstance.h"
+#include "GazeComponent.h"
+
 
 AVR_Player::AVR_Player()
 {
@@ -26,6 +28,9 @@ AVR_Player::AVR_Player()
 
 	gazeMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Gaze Mesh"));
 	gazeMeshComp->SetupAttachment(cameraComp);
+	gazeMeshComp->SetRelativeLocation(FVector(100, 0, 0));
+	gazeMeshComp->SetRelativeRotation(FRotator(-90, -90, 0));
+	gazeMeshComp->SetWorldScale3D(FVector(0.1f));
 
 	hmdMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HMD Mesh"));
 	hmdMesh->SetupAttachment(cameraComp);
@@ -77,6 +82,7 @@ AVR_Player::AVR_Player()
 	moveComp = CreateDefaultSubobject<UMoveComponent>(TEXT("Move Component"));
 	grabComp = CreateDefaultSubobject<UGrabComponent>(TEXT("Grab Component"));
 	handAnimComp = CreateDefaultSubobject<UVRHandAnimComponent>(TEXT("VR Hand Anim Component"));
+	gazeComp = CreateDefaultSubobject<UGazeComponent>(TEXT("Gaze Component"));
 }
 
 void AVR_Player::BeginPlay()
