@@ -38,21 +38,16 @@ void AWideMovieActor::BeginPlay()
 	// 마우스 커서 표시하기
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 
-	//moviePlayer->PlayAndSeek();
-
-
-
 }
 
 void AWideMovieActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (moviePlayer->IsPlaying())
+	/*if (moviePlayer->IsPlaying())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%d"), moviePlayer->GetDisplayTime().GetSeconds());
-		UE_LOG(LogTemp, Warning, TEXT("%.2f"), moviePlayer->GetRate());
-	}
+	}*/
 }
 
 void AWideMovieActor::Back()
@@ -121,7 +116,6 @@ void AWideMovieActor::Forward()
 		UE_LOG(LogTemp, Warning, TEXT("is playing: %s"), moviePlayer->IsPlaying() ? *FString("True") : *FString("False"));
 		UE_LOG(LogTemp, Warning, TEXT("is paused: %s"), moviePlayer->IsPaused() ? *FString("True") : *FString("False"));
 		UE_LOG(LogTemp, Warning, TEXT("is ready: %s"), moviePlayer->IsReady() ? *FString("True") : *FString("False"));
-		moviePlayer->Play();
 
 	}
 }
