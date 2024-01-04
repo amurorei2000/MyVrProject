@@ -19,6 +19,9 @@
 #include "GazeComponent.h"
 #include "Components/WidgetInteractionComponent.h"
 #include "WidgetPointerComponent.h"
+#include "MyCar.h"
+#include "EngineUtils.h"
+#include "CarCotrollerComponent.h"
 
 
 AVR_Player::AVR_Player()
@@ -92,6 +95,7 @@ AVR_Player::AVR_Player()
 	handAnimComp = CreateDefaultSubobject<UVRHandAnimComponent>(TEXT("VR Hand Anim Component"));
 	gazeComp = CreateDefaultSubobject<UGazeComponent>(TEXT("Gaze Component"));
 	widgetPointerComp = CreateDefaultSubobject<UWidgetPointerComponent>(TEXT("Widget Pointer Component"));
+	carControllerComp = CreateDefaultSubobject<UCarCotrollerComponent>(TEXT("Car Controller Component"));
 }
 
 void AVR_Player::BeginPlay()
@@ -115,6 +119,12 @@ void AVR_Player::BeginPlay()
 	}
 
 	bodyAnim = Cast<UVRBodyAnimInstance>(GetMesh()->GetAnimInstance());
+
+	// 월드에 차 액터를 찾아서 변수에 할당한다.
+	for (TActorIterator<AMyCar> car(GetWorld()); car; ++car)
+	{
+		controlledCar = *car;
+	}
 }
 
 void AVR_Player::Tick(float DeltaTime)
@@ -132,6 +142,11 @@ void AVR_Player::Tick(float DeltaTime)
 		bodyAnim->headLocation = cameraComp->GetComponentLocation();
 		bodyAnim->headRotation = cameraComp->GetComponentRotation();
 	}
+
+	/*if (controlledCar != nullptr)
+	{
+		controlledCar->RotateCar(0.1f);
+	}*/
 }
 
 void AVR_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -163,6 +178,7 @@ void AVR_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		grabComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 		handAnimComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 		widgetPointerComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
+		carControllerComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 	}
 }
 
