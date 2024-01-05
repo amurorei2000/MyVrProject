@@ -22,6 +22,7 @@
 #include "MyCar.h"
 #include "EngineUtils.h"
 #include "CarCotrollerComponent.h"
+#include "ClimbComponent.h"
 
 
 AVR_Player::AVR_Player()
@@ -96,6 +97,7 @@ AVR_Player::AVR_Player()
 	gazeComp = CreateDefaultSubobject<UGazeComponent>(TEXT("Gaze Component"));
 	widgetPointerComp = CreateDefaultSubobject<UWidgetPointerComponent>(TEXT("Widget Pointer Component"));
 	carControllerComp = CreateDefaultSubobject<UCarCotrollerComponent>(TEXT("Car Controller Component"));
+	climbComp = CreateDefaultSubobject<UClimbComponent>(TEXT("Climb Component"));
 }
 
 void AVR_Player::BeginPlay()
@@ -168,17 +170,18 @@ void AVR_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		enhancedInputComponent->BindAction(ia_rightThumbStick, ETriggerEvent::Triggered, this, &AVR_Player::RightThumbstickInput);
 		enhancedInputComponent->BindAction(ia_rightThumbStick, ETriggerEvent::Completed, this, &AVR_Player::RightThumbstickInput);
 		enhancedInputComponent->BindAction(ia_moveInput, ETriggerEvent::Triggered, this, &AVR_Player::PlayerMove);*/
-		enhancedInputComponent->BindAction(ia_inputs[11], ETriggerEvent::Triggered, this, &AVR_Player::PlayerRotate);
+		//enhancedInputComponent->BindAction(ia_inputs[11], ETriggerEvent::Triggered, this, &AVR_Player::PlayerRotate);
 
-		enhancedInputComponent->BindAction(ia_inputs[10], ETriggerEvent::Triggered, this, &AVR_Player::Recenter);
-		enhancedInputComponent->BindAction(ia_inputs[10], ETriggerEvent::Completed, this, &AVR_Player::StopRecenter);
+		//enhancedInputComponent->BindAction(ia_inputs[10], ETriggerEvent::Triggered, this, &AVR_Player::Recenter);
+		//enhancedInputComponent->BindAction(ia_inputs[10], ETriggerEvent::Completed, this, &AVR_Player::StopRecenter);
 
 		// 컴포넌트에 입력 이벤트 넘겨주기
-		moveComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
+		/*moveComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 		grabComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 		handAnimComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 		widgetPointerComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
-		carControllerComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
+		carControllerComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);*/
+		climbComp->SetupPlayerInputComponent(enhancedInputComponent, ia_inputs);
 	}
 }
 
